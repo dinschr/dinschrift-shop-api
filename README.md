@@ -84,7 +84,26 @@ Poll for tracking numbers, expected delivery dates, and production status.
 
 **`GET /api/v2/orders/{id}`**
 
-*(Detailed response schema coming soon).*
+**Example Response:**
+```json
+{
+  "order_id": "101747308500210612",
+  "external_order_reference": "SHOP-12345",
+  "status": "production",
+  "expected_delivery_date": "2026-07-05",
+  "tracking": {
+    "carrier": "Swiss Post",
+    "tracking_number": "99.12.345678.12345678",
+    "tracking_url": "[https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678](https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678)"
+  },
+  "totals": {
+    "subtotal": 82.00,
+    "express_surcharge": 0.00,
+    "grand_total": 88.64,
+    "vat_rate": 8.1
+  }
+}
+```
 
 ---
 
