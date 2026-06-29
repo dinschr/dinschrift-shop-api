@@ -15,7 +15,7 @@ This API is designed exclusively for ordering from your pre-configured custom st
 This repository is aimed at developers and integrators who want to route orders to Dinschrift via:
 - Custom internal merch tools
 - Staff uniform automations
-- Workflow automations (e.g., a webhook from Shopify to Zapier to Dinschrift)
+- Workflow automations (e.g., a webhook from Shopify to Zapier or Make, then to Dinschrift)
 
 ---
 
@@ -58,7 +58,7 @@ Common error codes:
 ---
 
 ### 1️⃣ Fetch Available Designs
-Retrieve all approved designs currently assigned to your specific Client Shop. This endpoint returns the `design_hash` required to submit an order.
+Retrieve all approved designs currently assigned to your specific Client Shop. This endpoint returns the `design_hash` required to submit an order, alongside a base64 encoded preview image.
 
 **`GET /api/v2/shops/{shop_id}/designs`**
 
@@ -70,7 +70,7 @@ Retrieve all approved designs currently assigned to your specific Client Shop. T
     "design_name": "Summer Vibes Drop - Front Logo",
     "base_cost": 24.50,
     "retail_price": 39.50,
-    "preview_url": "[https://storage.googleapis.com/din_order_previews/a1b2c3d4e5f6g7h8_front.png](https://storage.googleapis.com/din_order_previews/a1b2c3d4e5f6g7h8_front.png)"
+    "preview_base64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
   }
 ]
 ```
@@ -127,6 +127,37 @@ Poll for tracking numbers, expected delivery dates, and production status.
     "express_surcharge": 0.00,
     "grand_total": 88.64,
     "vat_rate": 8.1
+  }
+}
+```
+
+---
+
+### 🪝 Webhooks (Event Push)
+Instead of polling the Order Status endpoint, you can configure a Webhook URL in your Dinschrift Dashboard. We will send an HTTP `POST` request to your endpoint whenever an order's status changes. This is the ideal method for integrating with Zapier, Make, or custom backends.
+
+**Supported Events:**
+* `order.production_started`
+* `order.shipped`
+* `order.canceled`
+
+**Security & Verification:**
+To ensure webhooks are genuinely from Dinschrift, each request includes an `X-Dinschrift-Signature` header. This signature is an HMAC-SHA256 hash of the raw JSON request body, using your Webhook Secret (available in your dashboard) as the key. 
+
+**Example Webhook Payload:**
+```json
+{
+  "event": "order.shipped",
+  "order_id": "101747308500210612",
+  "external_order_reference": "SHOP-12345",
+  "timestamp": "2026-06-29T10:45:00Z",
+  "data": {
+    "status": "shipped",
+    "tracking": {
+      "carrier": "Swiss Post",
+      "tracking_number": "99.12.345678.12345678",
+      "tracking_url": "[https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678](https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678)"
+    }
   }
 }
 ```
