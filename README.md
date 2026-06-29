@@ -58,8 +58,145 @@ Common error codes:
 ---
 
 ### 1️⃣ Fetch Available Designs
-Retrieve all approved designs currently assigned to your specific Client Shop. This endpoint returns the `design_hash` required to submit an order, alongside a base64 encoded preview image.
+Retrieve all approved designs currently assigned to your specific Client Shop. This endpoint returns the `design_hash` required to submit an order, alongside a secure Google Cloud URL for the preview image.
 
+**`GET /api/v2/shops/{shop_id}/designs`**
+
+**Example Response:**
+```json
+[
+  {
+    "design_hash": "a1b2c3d4e5f6g7h8",
+    "design_name": "Summer Vibes Drop - Front Logo",
+    "base_cost": 24.50,
+    "retail_price": 39.50,
+    "preview_url": "[https://storage.googleapis.com/din_order_previews/a1b2c3d4e5f6g7h8_front.png](https://storage.googleapis.com/din_order_previews/a1b2c3d4e5f6g7h8_front.png)"
+  }
+]
+```
+
+### 2️⃣ Submit an Order
+Submit a fulfillment order using the known `design_hash` and standard SKUs. 
+
+**`POST /api/v2/orders`**
+
+**Example Request:**
+```json
+{
+  "external_order_reference": "SHOP-12345",
+  "shop_id": "8a7b6c5d",
+  "is_express": false,
+  "items": [
+    {
+      "design_hash": "a1b2c3d4e5f6g7h8",
+      "sizes": [
+        { "sku": "STSU168C651S", "quantity": 1 },
+        { "sku": "STSU168C651M", "quantity": 2 }
+      ]
+    }
+  ],
+  "shipping_address": {
+    "name": "Jane Doe",
+    "street": "Example Street 1",
+    "city": "Zürich",
+    "zip": "8000",
+    "country": "CH"
+  }
+}
+```
+
+### 3️⃣ Check Order Status
+Poll for tracking numbers, expected delivery dates, and production status.
+
+**`GET /api/v2/orders/{id}`**
+
+**Example Response:**
+```json
+{
+  "order_id": "101747308500210612",
+  "external_order_reference": "SHOP-12345",
+  "status": "production",
+  "expected_delivery_date": "2026-07-05",
+  "tracking": {
+    "carrier": "Swiss Post",
+    "tracking_number": "99.12.345678.12345678",
+    "tracking_url": "[https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678](https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678)"
+  },
+  "totals": {
+    "subtotal": 82.00,
+    "express_surcharge": 0.00,
+    "grand_total": 88.64,
+    "vat_rate": 8.1
+  }
+}
+```
+
+---
+
+### 🪝 Webhooks (Event Push)
+Instead of polling the Order Status endpoint, you can configure a Webhook URL in your Dinschrift Dashboard. We will send an HTTP `POST` request to your endpoint whenever an order's status changes. This is the ideal method for integrating with Zapier, Make, or custom backends.
+
+**Supported Events:**
+* `order.production_started`
+* `order.shipped`
+* `order.canceled`
+
+**Security & Verification:**
+To ensure webhooks are genuinely from Dinschrift, each request includes an `X-Dinschrift-Signature` header. This signature is an HMAC-SHA256 hash of the raw JSON request body, using your Webhook Secret (available in your dashboard) as the key. 
+
+**Example Webhook Payload:**
+```json
+{
+  "event": "order.shipped",
+  "order_id": "101747308500210612",
+  "external_order_reference": "SHOP-12345",
+  "timestamp": "2026-06-29T10:45:00Z",
+  "data": {
+    "status": "shipped",
+    "tracking": {
+      "carrier": "Swiss Post",
+      "tracking_number": "99.12.345678.12345678",
+      "tracking_url": "[https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678](https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678)"
+    }
+  }
+}
+```
+
+---
+
+## Scope
+
+This repo contains:
+- The data model for **Shop-Centric automated orders**.
+- A conceptual design for the order API.
+
+This repo does **not** contain:
+- Backend source code or deployment scripts,
+- API keys, secrets or live credentials,
+- Billing or payment processing implementation.
+
+Commercial use with Dinschrift as the print provider always requires a separate commercial agreement.
+
+---
+
+## Stability and changes
+
+Because this spec is in **beta**, we may:
+- add new fields (in a backwards-compatible way),
+- clarify behaviour and error codes,
+- add new endpoints (e.g. webhooks).
+
+Breaking changes, if ever needed, will be introduced via **versioning** and documented in this repo.
+
+---
+
+## License
+
+Unless otherwise stated in individual files, the written specification in this repository is made available under the **MIT License**.
+
+You are free to:
+- read, implement and experiment with this spec,
+- use it internally or with Dinschrift under a commercial agreement.
 **`GET /api/v2/shops/{shop_id}/designs`**
 
 **Example Response:**
