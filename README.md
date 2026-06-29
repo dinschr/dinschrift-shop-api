@@ -1,37 +1,27 @@
-# Dinschrift Shop API – Machine-to-Machine B2B Fulfillment
+# Dinschrift Shop API – Store Fulfillment
 
-The Dinschrift Shop API is a streamlined REST-style HTTP API for sending print-on-demand textile orders **from one machine to another**. 
+The Dinschrift Shop API is a REST HTTP API for automating print-on-demand textile orders. 
 
-This repository describes our **Shop-Centric** fulfillment model. Rather than dealing with complex image uploads, DPI calculations, and print coordinates, integrators simply order pre-approved designs directly from their Dinschrift B2B Merch Shops.
+This API is designed exclusively for ordering from your pre-configured custom stores within the Dinschrift Dashboard. By utilizing a **Shop-Centric** fulfillment model, you simply order pre-approved designs using a `design_hash` rather than dealing with raw image uploads, DPI calculations, or print coordinates.
 
-The focus is on:
-
-- Keeping the integration **frictionless** for developers and low-code tools (Zapier, Make, n8n, etc.).
-- Utilizing a **Shop-Centric workflow** (Order by `design_hash` instead of raw image data).
-- Matching **Dinschrift’s internal workflow** (SKU-based, automated production).
-
-> **Status** > This V2 specification is currently in **beta**.  
+> **Status** 
+> This V2 specification is currently in **beta**.  
 > Do not rely on it in production without a direct agreement with Dinschrift.
 
 ---
 
 ## Who is this for?
 
-This repository is aimed at:
-
-- Integrators who want to send **direct B2B POD orders** to Dinschrift.
-- Developers building:
-  - Custom internal merch tools,
-  - Staff uniform automations,
-  - Low-code workflows (e.g., a webhook from Shopify to Zapier to Dinschrift).
-
-It is designed to abstract away the complexity of print-on-demand, allowing you to focus purely on order fulfillment.
+This repository is aimed at developers and integrators who want to route orders to Dinschrift via:
+- Custom internal merch tools
+- Staff uniform automations
+- Workflow automations (e.g., a webhook from Shopify to Zapier to Dinschrift)
 
 ---
 
 ## Documentation
 
-To keep things simple, all necessary documentation is consolidated right here. No subfolders to click through.
+All API documentation and endpoints are consolidated below.
 
 ### 🔐 Authentication
 All requests must include your API credentials in the headers. You can generate these in your [Dinschrift Dashboard](https://beta.dinschrift.ch/account/api-credentials).
@@ -54,7 +44,7 @@ Retrieve all approved designs currently assigned to your specific Client Shop. T
     "design_name": "Summer Vibes Drop - Front Logo",
     "base_cost": 24.50,
     "retail_price": 39.50,
-    "preview_url": "https://storage.googleapis.com/din_order_previews/a1b2c3d4e5f6g7h8_front.png"
+    "preview_url": "[https://storage.googleapis.com/din_order_previews/a1b2c3d4e5f6g7h8_front.png](https://storage.googleapis.com/din_order_previews/a1b2c3d4e5f6g7h8_front.png)"
   }
 ]
 ```
@@ -101,15 +91,13 @@ Poll for tracking numbers, expected delivery dates, and production status.
 ## Scope
 
 This repo contains:
-
 - The data model for **Shop-Centric automated orders**.
-- A conceptual design for a **machine-to-machine order API**:
+- A conceptual design for the order API:
   - submit orders,
   - fetch shop designs,
   - read order status.
 
 This repo does **not** contain:
-
 - Backend source code or deployment scripts,
 - API keys, secrets or live credentials,
 - Billing or payment processing implementation.
@@ -121,7 +109,6 @@ Commercial use with Dinschrift as the print provider always requires a separate 
 ## Stability and changes
 
 Because this spec is in **beta**, we may:
-
 - add new fields (in a backwards-compatible way),
 - clarify behaviour and error codes,
 - add new endpoints (e.g. webhooks).
@@ -135,7 +122,5 @@ Breaking changes, if ever needed, will be introduced via **versioning** and docu
 Unless otherwise stated in individual files, the written specification in this repository is made available under the **MIT License**.
 
 You are free to:
-
 - read, implement and experiment with this spec,
 - use it internally or with Dinschrift under a commercial agreement.
-```
