@@ -31,6 +31,32 @@ X-Shop-ID: 8a7b6c5d
 X-Private-Key: sk_live_...
 ```
 
+### 💳 Billing & Payments
+The Dinschrift Shop API operates on a fully automated billing cycle. To successfully submit an order, you must have a valid credit card saved in your [Dinschrift Dashboard](https://beta.dinschrift.ch/account/payment-methods).
+
+* When you submit an order via the `POST /api/v2/orders` endpoint, your default saved card is automatically charged.
+* Credit card data is never passed through the API; it relies entirely on the secure token already saved in your account via our Swiss partner Saferpay.
+
+### ⚠️ Errors
+When an API request fails, you will receive standard HTTP status codes along with a JSON response detailing the issue.
+
+Common error codes:
+* `400 Bad Request`: Missing required fields (e.g., missing `design_hash` or invalid SKU).
+* `401 Unauthorized`: Invalid or missing `X-Private-Key` or `X-Shop-ID`.
+* `402 Payment Required`: The order could not be processed. This happens if no default credit card is saved in your dashboard, the card has expired, or the payment was declined by the bank.
+* `404 Not Found`: The requested `shop_id` or `design_hash` does not exist or does not belong to your account.
+
+**Example Error Response:**
+```json
+{
+  "error": "payment_failed",
+  "message": "Payment declined. Please update your saved credit card in the Dinschrift Dashboard.",
+  "status_code": 402
+}
+```
+
+---
+
 ### 1️⃣ Fetch Available Designs
 Retrieve all approved designs currently assigned to your specific Client Shop. This endpoint returns the `design_hash` required to submit an order.
 
@@ -111,10 +137,7 @@ Poll for tracking numbers, expected delivery dates, and production status.
 
 This repo contains:
 - The data model for **Shop-Centric automated orders**.
-- A conceptual design for the order API:
-  - submit orders,
-  - fetch shop designs,
-  - read order status.
+- A conceptual design for the order API.
 
 This repo does **not** contain:
 - Backend source code or deployment scripts,
