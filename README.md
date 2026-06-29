@@ -4,8 +4,7 @@ The Dinschrift Shop API is a REST HTTP API for automating print-on-demand textil
 
 This API is designed exclusively for ordering from your pre-configured custom stores within the Dinschrift Dashboard. By utilizing a **Shop-Centric** fulfillment model, you simply order pre-approved designs using a `design_hash` rather than dealing with raw image uploads, DPI calculations, or print coordinates.
 
-> **Status** 
-> This V2 specification is currently in **beta**.  
+> **Status** > This V2 specification is currently in **beta**.  
 > Do not rely on it in production without a direct agreement with Dinschrift.
 
 ---
@@ -32,10 +31,16 @@ X-Private-Key: sk_live_...
 ```
 
 ### 💳 Billing & Payments
-The Dinschrift Shop API operates on a fully automated billing cycle. To successfully submit an order, you must have a valid credit card saved in your [Dinschrift Dashboard](https://beta.dinschrift.ch/account/payment-methods).
+The Dinschrift Shop API operates on a fully automated billing cycle. To successfully submit a live order, you must have a valid credit card saved in your [Dinschrift Dashboard](https://beta.dinschrift.ch/account/payment-methods).
 
 * When you submit an order via the `POST /api/v2/orders` endpoint, your default saved card is automatically charged.
 * Credit card data is never passed through the API; it relies entirely on the secure token already saved in your account via our Swiss partner Saferpay.
+
+### 🧪 Sandbox / Testing
+To safely test your integration without charging your credit card, simply include `"is_test": true` in your order payload. 
+
+* Test orders validate your JSON, return a simulated `order_id`, and will successfully trigger your configured webhooks so you can test your entire flow.
+* They are **not** sent to production and **no payment** is captured.
 
 ### ⚠️ Errors
 When an API request fails, you will receive standard HTTP status codes along with a JSON response detailing the issue.
@@ -75,6 +80,9 @@ Retrieve all approved designs currently assigned to your specific Client Shop. T
 ]
 ```
 
+### 📦 Garment SKUs
+To submit an order, you need the exact SKU for the blank garment and size (e.g., `STSU168C651S` for a size Small, `STSU168C651M` for a Medium). You can view and export a complete list of valid SKUs and their corresponding sizes for your assigned designs directly from the **Shop Settings** page in your Dinschrift Dashboard.
+
 ### 2️⃣ Submit an Order
 Submit a fulfillment order using the known `design_hash` and standard SKUs. 
 
@@ -85,7 +93,7 @@ Submit a fulfillment order using the known `design_hash` and standard SKUs.
 {
   "external_order_reference": "SHOP-12345",
   "shop_id": "8a7b6c5d",
-  "is_express": false,
+  "is_test": false,
   "items": [
     {
       "design_hash": "a1b2c3d4e5f6g7h8",
@@ -106,7 +114,7 @@ Submit a fulfillment order using the known `design_hash` and standard SKUs.
 ```
 
 ### 3️⃣ Check Order Status
-Poll for tracking numbers, expected delivery dates, and production status.
+Poll for production status, ready-to-ship dates, and courier tracking details.
 
 **`GET /api/v2/orders/{id}`**
 
@@ -116,6 +124,7 @@ Poll for tracking numbers, expected delivery dates, and production status.
   "order_id": "101747308500210612",
   "external_order_reference": "SHOP-12345",
   "status": "production",
+  "ready_to_ship_date": "2026-07-03",
   "expected_delivery_date": "2026-07-05",
   "tracking": {
     "carrier": "Swiss Post",
@@ -124,7 +133,6 @@ Poll for tracking numbers, expected delivery dates, and production status.
   },
   "totals": {
     "subtotal": 82.00,
-    "express_surcharge": 0.00,
     "grand_total": 88.64,
     "vat_rate": 8.1
   }
@@ -137,164 +145,24 @@ Poll for tracking numbers, expected delivery dates, and production status.
 Instead of polling the Order Status endpoint, you can configure a Webhook URL in your Dinschrift Dashboard. We will send an HTTP `POST` request to your endpoint whenever an order's status changes. This is the ideal method for integrating with Zapier, Make, or custom backends.
 
 **Supported Events:**
-* `order.production_started`
+* `order.production_completed` (Item is printed and ready to be sent)
 * `order.shipped`
 * `order.canceled`
 
 **Security & Verification:**
 To ensure webhooks are genuinely from Dinschrift, each request includes an `X-Dinschrift-Signature` header. This signature is an HMAC-SHA256 hash of the raw JSON request body, using your Webhook Secret (available in your dashboard) as the key. 
 
-**Example Webhook Payload:**
+**Example Webhook Payload (`order.production_completed`):**
 ```json
 {
-  "event": "order.shipped",
+  "event": "order.production_completed",
   "order_id": "101747308500210612",
   "external_order_reference": "SHOP-12345",
   "timestamp": "2026-06-29T10:45:00Z",
   "data": {
-    "status": "shipped",
-    "tracking": {
-      "carrier": "Swiss Post",
-      "tracking_number": "99.12.345678.12345678",
-      "tracking_url": "[https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678](https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678)"
-    }
-  }
-}
-```
-
----
-
-## Scope
-
-This repo contains:
-- The data model for **Shop-Centric automated orders**.
-- A conceptual design for the order API.
-
-This repo does **not** contain:
-- Backend source code or deployment scripts,
-- API keys, secrets or live credentials,
-- Billing or payment processing implementation.
-
-Commercial use with Dinschrift as the print provider always requires a separate commercial agreement.
-
----
-
-## Stability and changes
-
-Because this spec is in **beta**, we may:
-- add new fields (in a backwards-compatible way),
-- clarify behaviour and error codes,
-- add new endpoints (e.g. webhooks).
-
-Breaking changes, if ever needed, will be introduced via **versioning** and documented in this repo.
-
----
-
-## License
-
-Unless otherwise stated in individual files, the written specification in this repository is made available under the **MIT License**.
-
-You are free to:
-- read, implement and experiment with this spec,
-- use it internally or with Dinschrift under a commercial agreement.
-**`GET /api/v2/shops/{shop_id}/designs`**
-
-**Example Response:**
-```json
-[
-  {
-    "design_hash": "a1b2c3d4e5f6g7h8",
-    "design_name": "Summer Vibes Drop - Front Logo",
-    "base_cost": 24.50,
-    "retail_price": 39.50,
-    "preview_base64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
-  }
-]
-```
-
-### 2️⃣ Submit an Order
-Submit a fulfillment order using the known `design_hash` and standard SKUs. 
-
-**`POST /api/v2/orders`**
-
-**Example Request:**
-```json
-{
-  "external_order_reference": "SHOP-12345",
-  "shop_id": "8a7b6c5d",
-  "is_express": false,
-  "items": [
-    {
-      "design_hash": "a1b2c3d4e5f6g7h8",
-      "sizes": [
-        { "sku": "STSU168C651S", "quantity": 1 },
-        { "sku": "STSU168C651M", "quantity": 2 }
-      ]
-    }
-  ],
-  "shipping_address": {
-    "name": "Jane Doe",
-    "street": "Example Street 1",
-    "city": "Zürich",
-    "zip": "8000",
-    "country": "CH"
-  }
-}
-```
-
-### 3️⃣ Check Order Status
-Poll for tracking numbers, expected delivery dates, and production status.
-
-**`GET /api/v2/orders/{id}`**
-
-**Example Response:**
-```json
-{
-  "order_id": "101747308500210612",
-  "external_order_reference": "SHOP-12345",
-  "status": "production",
-  "expected_delivery_date": "2026-07-05",
-  "tracking": {
-    "carrier": "Swiss Post",
-    "tracking_number": "99.12.345678.12345678",
-    "tracking_url": "[https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678](https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678)"
-  },
-  "totals": {
-    "subtotal": 82.00,
-    "express_surcharge": 0.00,
-    "grand_total": 88.64,
-    "vat_rate": 8.1
-  }
-}
-```
-
----
-
-### 🪝 Webhooks (Event Push)
-Instead of polling the Order Status endpoint, you can configure a Webhook URL in your Dinschrift Dashboard. We will send an HTTP `POST` request to your endpoint whenever an order's status changes. This is the ideal method for integrating with Zapier, Make, or custom backends.
-
-**Supported Events:**
-* `order.production_started`
-* `order.shipped`
-* `order.canceled`
-
-**Security & Verification:**
-To ensure webhooks are genuinely from Dinschrift, each request includes an `X-Dinschrift-Signature` header. This signature is an HMAC-SHA256 hash of the raw JSON request body, using your Webhook Secret (available in your dashboard) as the key. 
-
-**Example Webhook Payload:**
-```json
-{
-  "event": "order.shipped",
-  "order_id": "101747308500210612",
-  "external_order_reference": "SHOP-12345",
-  "timestamp": "2026-06-29T10:45:00Z",
-  "data": {
-    "status": "shipped",
-    "tracking": {
-      "carrier": "Swiss Post",
-      "tracking_number": "99.12.345678.12345678",
-      "tracking_url": "[https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678](https://service.post.ch/ekp-web/ui/list?ids=99.12.345678.12345678)"
-    }
+    "status": "ready_to_ship",
+    "ready_to_ship_date": "2026-07-03",
+    "expected_delivery_date": "2026-07-05"
   }
 }
 ```
