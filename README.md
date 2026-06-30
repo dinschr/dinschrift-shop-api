@@ -63,7 +63,7 @@ Common error codes:
 ---
 
 ### 1️⃣ Fetch Available Designs
-Retrieve all approved designs currently assigned to your specific Client Shop. This endpoint returns the `design_hash` required to submit an order, alongside a secure Google Cloud URL for the preview image.
+Retrieve all approved designs currently assigned to your specific Client Shop. This endpoint returns the `design_hash` required to submit an order.
 
 **`GET /api/v2/shops/{shop_id}/designs`**
 
@@ -75,7 +75,7 @@ Retrieve all approved designs currently assigned to your specific Client Shop. T
     "design_name": "Summer Vibes Drop - Front Logo",
     "base_cost": 24.50,
     "retail_price": 39.50,
-    "preview_url": "[https://storage.googleapis.com/din_order_previews/a1b2c3d4e5f6g7h8_front.png](https://storage.googleapis.com/din_order_previews/a1b2c3d4e5f6g7h8_front.png)"
+    "preview_url": "https://render.dinschrift.ch/render/preview/1324567891235646/a1b2c3325e5f6g7h8/STTU169/C001/front"
   }
 ]
 ```
