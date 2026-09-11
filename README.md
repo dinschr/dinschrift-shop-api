@@ -1,54 +1,44 @@
-# Dinschrift Shop API – Store Fulfillment
+# Dinschrift Shop API
 
-The Dinschrift Shop API is a REST HTTP API for automating print-on-demand textile orders. 
-
-This API is designed exclusively for ordering from your pre-configured custom stores within the Dinschrift Dashboard. By utilizing a **Shop-Centric** fulfillment model, you simply order pre-approved designs using a `design_hash` rather than dealing with raw image uploads, DPI calculations, or print coordinates.
-
-> **Status** > This V2 specification is currently in **beta**.  
-> Do not rely on it in production without a direct agreement with Dinschrift.
+The Dinschrift Shop API enables automated M2M (Machine-to-Machine) and guest shop orders for pre-configured t-shirts available in the client dashboard or Merch-as-a-Service store. It provides a straightforward way to submit orders and receive real-time status updates via webhooks.
 
 ---
 
-## Who is this for?
+## 🔐 Authentication
 
-This repository is aimed at developers and integrators who want to route orders to Dinschrift via:
-* Custom internal merch tools
-* Staff uniform automations
-* Workflow automations (e.g., a webhook from Shopify to Zapier or Make, then to Dinschrift)
+All API requests must be authenticated using your API credentials. You can generate and manage these in the **API & Credentials** section of your Dinschrift Dashboard.
 
----
-
-## Documentation
-
-All API documentation and endpoints are consolidated below.
-
-### 🔐 Authentication
-All requests must include your API credentials in the headers. You can generate these in your [Dinschrift Dashboard](https://beta.dinschrift.ch/account/api-credentials).
+Pass your credentials in the headers of your requests:
 
 ```http
-X-Shop-ID: 8a7b6c5d
-X-Private-Key: sk_live_...
+X-Shop-ID: <your_shop_id>
+X-Private-Key: <your_private_key>
 ```
 
-### 💳 Billing & Payments
-The Dinschrift Shop API operates on a fully automated billing cycle. To successfully submit a live order, you must have a valid credit card saved in your [Dinschrift Dashboard](https://beta.dinschrift.ch/account/payment-methods).
+---
 
-* When you submit an order via the `POST /api/v2/orders` endpoint, your default saved card is automatically charged.
-* Credit card data is never passed through the API; it relies entirely on the secure token already saved in your account via our Swiss partner Saferpay.
+## 🛒 Ordering
 
-### 🧪 Sandbox / Testing
-To safely test your integration without charging your credit card, simply include `"is_test": true` in your order payload. 
+Orders are submitted via a POST request to our API. This handles orders coming directly from your custom `shops.dinschrift.ch` storefronts or your own M2M integrations.
 
-* Test orders validate your JSON, return a simulated `order_id`, and will successfully trigger your configured webhooks so you can test your entire flow.
-* They are **not** sent to production and **no payment** is captured.
+**Endpoint:**
+`POST /api/v2/orders`
 
-### 🪝 Webhooks & Status Updates
-Instead of polling the API for order updates, you can configure a Webhook URL to receive real-time POST requests whenever an order status changes (e.g., from Processing to Shipped).
+*(Note: Use the Payload Builder in your API dashboard to simulate and structure your order requests.)*
 
-You can save your destination Webhook URL directly in your [Dinschrift Dashboard](https://beta.dinschrift.ch/account/api-credentials) under the **API & Credentials** section.
+---
 
-**Webhook Payload Example:**
-When a status changes, your endpoint will receive a JSON payload containing the exact database parameters for that order:
+## 🪝 Webhooks & Status Updates
+
+Instead of polling the system to check if a t-shirt has been printed or shipped, you can configure a Webhook URL. The system will automatically send a POST request to your URL whenever an order's status changes.
+
+### Configuration
+You can save your destination Webhook URL directly in your Dinschrift Dashboard under the **API & Credentials** section.
+
+### Payload Structure
+When an order status changes (e.g., to status `90`), your server will receive a JSON payload containing the updated order details. 
+
+**Example Payload:**
 ```json
 {
   "success": true,
@@ -58,6 +48,10 @@ When a status changes, your endpoint will receive a JSON payload containing the 
     "orderDate": "2026-09-10T12:22:53.000Z",
     "statusCode": "90",
     "totalAmount": 36.25,
+    "items": []
+  } 
+}
+```    "totalAmount": 36.25,
     "items": []
   } 
 }
