@@ -2,7 +2,7 @@
 
 The Dinschrift Shop API enables automated M2M (Machine-to-Machine) and guest shop orders for pre-configured t-shirts available in the client dashboard or Merch-as-a-Service store. It provides a straightforward way to submit orders and receive real-time status updates via webhooks.
 
-**Base URL:** `https://api.dinschrift.ch/v2`
+**Base URL:** `https://api.dinschrift.ch`
 
 ---
 
@@ -24,7 +24,7 @@ X-Private-Key: <your_private_key>
 Orders are submitted via a POST request to our API. This handles orders coming directly from your custom `shops.dinschrift.ch` storefronts or your own M2M integrations.
 
 **Endpoint:**
-`POST /api/v2/orders`
+`POST /v2/orders`
 
 **Example Request Payload:**
 ```json
