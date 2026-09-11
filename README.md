@@ -12,9 +12,9 @@ This API is designed exclusively for ordering from your pre-configured custom st
 ## Who is this for?
 
 This repository is aimed at developers and integrators who want to route orders to Dinschrift via:
-- Custom internal merch tools
-- Staff uniform automations
-- Workflow automations (e.g., a webhook from Shopify to Zapier or Make, then to Dinschrift)
+* Custom internal merch tools
+* Staff uniform automations
+* Workflow automations (e.g., a webhook from Shopify to Zapier or Make, then to Dinschrift)
 
 ---
 
@@ -42,6 +42,27 @@ To safely test your integration without charging your credit card, simply includ
 * Test orders validate your JSON, return a simulated `order_id`, and will successfully trigger your configured webhooks so you can test your entire flow.
 * They are **not** sent to production and **no payment** is captured.
 
+### 🪝 Webhooks & Status Updates
+Instead of polling the API for order updates, you can configure a Webhook URL to receive real-time POST requests whenever an order status changes (e.g., from Processing to Shipped).
+
+You can save your destination Webhook URL directly in your [Dinschrift Dashboard](https://beta.dinschrift.ch/account/api-credentials) under the **API & Credentials** section.
+
+**Webhook Payload Example:**
+When a status changes, your endpoint will receive a JSON payload containing the exact database parameters for that order:
+```json
+{
+  "success": true,
+  "data": {
+    "orderId": "API-TEST-LIVE-4",
+    "orderNumber": 54564,
+    "orderDate": "2026-09-10T12:22:53.000Z",
+    "statusCode": "90",
+    "totalAmount": 36.25,
+    "items": []
+  } 
+}
+```
+
 ### ⚠️ Errors
 When an API request fails, you will receive standard HTTP status codes along with a JSON response detailing the issue.
 
@@ -55,7 +76,9 @@ Common error codes:
 ```json
 {
   "error": "payment_failed",
-  "message": "Payment declined. Please update your saved credit card in the Dinschrift Dashboard.",
+  "message": "No default payment method found for this account."
+}
+```  "message": "Payment declined. Please update your saved credit card in the Dinschrift Dashboard.",
   "status_code": 402
 }
 ```
