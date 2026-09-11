@@ -2,6 +2,8 @@
 
 The Dinschrift Shop API enables automated M2M (Machine-to-Machine) and guest shop orders for pre-configured t-shirts available in the client dashboard or Merch-as-a-Service store. It provides a straightforward way to submit orders and receive real-time status updates via webhooks.
 
+**Base URL:** `https://api.dinschrift.ch/v2`
+
 ---
 
 ## 🔐 Authentication
@@ -24,7 +26,35 @@ Orders are submitted via a POST request to our API. This handles orders coming d
 **Endpoint:**
 `POST /api/v2/orders`
 
-*(Note: Use the Payload Builder in your API dashboard to simulate and structure your order requests.)*
+**Example Request Payload:**
+```json
+{
+  "orderReference": "API-TEST-1234",
+  "shippingMethod": "economy",
+  "isTest": true,
+  "customer": {
+    "email": "max@example.com",
+    "phone": ""
+  },
+  "shippingAddress": {
+    "company": "Test GmbH",
+    "firstName": "Max",
+    "lastName": "Mustermann",
+    "street": "Bahnhofstrasse 1",
+    "optional": "",
+    "city": "Zürich",
+    "zip": "8001",
+    "country": "CH"
+  },
+  "items": [
+    {
+      "designHash": "2df750f548bfa2fe",
+      "sku": "STTU169C0011M",
+      "quantity": 1
+    }
+  ]
+}
+```
 
 ---
 
@@ -34,6 +64,11 @@ Instead of polling the system to check if a t-shirt has been printed or shipped,
 
 ### Configuration
 You can save your destination Webhook URL directly in your Dinschrift Dashboard under the **API & Credentials** section.
+
+### Order Status Codes
+When checking an order status or receiving a webhook, you will primarily see these codes:
+* `60`: Order is in production (Processing)
+* `90`: Order has been shipped (Completed)
 
 ### Payload Structure
 When an order status changes (e.g., to status `90`), your server will receive a JSON payload containing the updated order details. 
